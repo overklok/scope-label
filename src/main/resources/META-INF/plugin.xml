@@ -27,19 +27,9 @@
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="com.overklok.scopelabel.preferences.ApplicationPreferences"/>
         <projectService serviceImplementation="com.overklok.scopelabel.preferences.ProjectPreferences"/>
-<!--        <projectConfigurable id="ScopeLabel" displayName="Scope Label"-->
-<!--                             instance="com.overklok.scopelabel.ScopeLabelConfigurable"/>-->
         <projectConfigurable id="ScopeLabel" displayName="Scope Label"
                              instance="com.overklok.scopelabel.ScopeLabelChooserConfigurable"/>
-<!--            <projectConfigurable id="ScopeLabel" displayName="Scope Label"-->
-<!--                                 instance="com.overklok.scopelabel.FileColorsConfigurable"/>-->
     </extensions>
-
-    <applicationListeners>
-        <listener class="com.overklok.scopelabel.FileEditorManagerListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"></listener>
-    </applicationListeners>
-
-    <!-- com.intellij.ide.util.scopeChooser.ScopeChooserConfigurable -->
 
     <project-components>
         <component>

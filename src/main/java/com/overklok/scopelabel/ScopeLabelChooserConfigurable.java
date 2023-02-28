@@ -1,19 +1,18 @@
 package com.overklok.scopelabel;
 
-// com.intellij.ui.tabs.FileColorsConfigurable
-import com.overklok.scopelabel.ScopeLabelConfigurable;
-
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.util.scopeChooser.ScopeConfigurable;
 import com.intellij.lang.LangBundle;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
-import com.intellij.openapi.ui.*;
+import com.intellij.openapi.ui.MasterDetailsComponent;
+import com.intellij.openapi.ui.MasterDetailsStateService;
+import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packageDependencies.DependencyValidationManager;
@@ -23,14 +22,12 @@ import com.intellij.psi.search.scope.packageSet.NamedScopeManager;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.ui.tree.TreeUtil;
-import com.overklok.scopelabel.preferences.ScopePrefs;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
 
@@ -92,7 +89,6 @@ public class ScopeLabelChooserConfigurable extends MasterDetailsComponent implem
                 ProjectBundle.message("rename.scope.title"), ScopeConfigurable.class);
         checkForPredefinedNames();
         super.apply();
-        processScopes();
 
         loadStateOrder();
 
@@ -135,37 +131,19 @@ public class ScopeLabelChooserConfigurable extends MasterDetailsComponent implem
         if (myRoot.getChildCount() != order.size()) return true;
         for (int i = 0; i < myRoot.getChildCount(); i++) {
             final MyNode node = (MyNode)myRoot.getChildAt(i);
-            final ScopeLabelConfigurable scopeConfigurable = (ScopeLabelConfigurable)node.getConfigurable();
+            final ScopeLabelConfigurable scopeLabelConfigurable = (ScopeLabelConfigurable)node.getConfigurable();
 
             if (order.size() <= i) return true;
             final String name = order.get(i);
-            if (!Comparing.strEqual(name, scopeConfigurable.getScopeId())) return true;
-            if (isInitialized(scopeConfigurable)) {
-                final NamedScopesHolder holder = scopeConfigurable.getHolder();
+            if (!Comparing.strEqual(name, scopeLabelConfigurable.getScopeId())) return true;
+            if (scopeLabelConfigurable.isInitialized()) {
+                final NamedScopesHolder holder = scopeLabelConfigurable.getHolder();
                 final NamedScope scope = holder.getScope(name);
                 if (scope == null) return true;
-                if (scopeConfigurable.isModified()) return true;
+                if (scopeLabelConfigurable.isModified()) return true;
             }
         }
         return false;
-    }
-
-    private void processScopes() {
-//        final List<NamedScope> localScopes = new ArrayList<>();
-//        final List<NamedScope> sharedScopes = new ArrayList<>();
-//        for (int i = 0; i < myRoot.getChildCount(); i++) {
-//            final MyNode node = (MyNode)myRoot.getChildAt(i);
-//            final ScopeConfigurable scopeConfigurable = (ScopeConfigurable)node.getConfigurable();
-//            final NamedScope namedScope = scopeConfigurable.getScope();
-//            if (scopeConfigurable.getHolder() == myLocalScopesManager) {
-//                localScopes.add(namedScope);
-//            }
-//            else {
-//                sharedScopes.add(namedScope);
-//            }
-//        }
-//        myLocalScopesManager.setScopes(localScopes.toArray(NamedScope.EMPTY_ARRAY));
-//        mySharedScopesManager.setScopes(sharedScopes.toArray(NamedScope.EMPTY_ARRAY));
     }
 
     private void loadStateOrder() {
@@ -204,9 +182,9 @@ public class ScopeLabelChooserConfigurable extends MasterDetailsComponent implem
                 if (path != null) {
                     final MyNode node = (MyNode)path.getLastPathComponent();
                     final NamedConfigurable namedConfigurable = node.getConfigurable();
-                    if (namedConfigurable instanceof ScopeConfigurable) {
-                        ((ScopeConfigurable)namedConfigurable).cancelCurrentProgress();
-                    }
+//                    if (namedConfigurable instanceof ScopeLabelConfigurable) {
+//                        ((ScopeLabelConfigurable)namedConfigurable).cancelCurrentProgress();
+//                    }
                 }
             }
         });
@@ -234,19 +212,10 @@ public class ScopeLabelChooserConfigurable extends MasterDetailsComponent implem
 
     @Override
     protected void updateSelection(@Nullable final NamedConfigurable configurable) {
-        if (myCurrentConfigurable != null) {
-            try {
-                myCurrentConfigurable.apply();
-            } catch (ConfigurationException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
         if (configurable != null) {
             NamedScope scope = (NamedScope) configurable.getEditableObject();
 
-            ScopeLabelConfigurable slc = new ScopeLabelConfigurable(scope, myProject);
-            super.updateSelection(slc);
+            super.updateSelection(configurable);
         } else {
             super.updateSelection(null);
         }

@@ -25,24 +25,6 @@ import java.util.Map;
 )
 public class ProjectPreferences implements PersistentStateComponent<ProjectPreferences> {
     @OptionTag
-    private Map<String, ScopePrefs> items = new HashMap<>();
-
-    @OptionTag
-    private String label = "";
-
-    @OptionTag
-    private String backgroundColor = "#B12F2F";
-
-    @OptionTag
-    private String textColor = "#FFFFFF";
-
-    @OptionTag
-    private String fontSize = null;
-
-    @OptionTag
-    private String fontName = null;
-
-    @OptionTag
     private Map<String, ScopePrefs> scopes = new HashMap<>();
 
     public static ProjectPreferences getInstance(Project project) {
@@ -60,60 +42,60 @@ public class ProjectPreferences implements PersistentStateComponent<ProjectPrefe
         XmlSerializerUtil.copyBean(state, this);
     }
 
-    public void setBackgroundColor(Color color) {
-        this.backgroundColor = UtilsColor.toHex(color);
-    }
-
     public Map<String, ScopePrefs> getScopePrefs() {
         return scopes;
     }
 
-    public Color getBackgroundColor() {
-        return Color.decode(this.backgroundColor);
+    public void setBackgroundColor(String scopeId, Color color) {
+        ScopePrefs scopePrefs = this.scopes.getOrDefault(scopeId, new ScopePrefs());
+        scopePrefs.setBackgroundColor(UtilsColor.toHex(color));
     }
 
-    public void setTextColor(Color color) {
-        this.textColor = UtilsColor.toHex(color);
+    public Color getBackgroundColor(String scopeId) {
+        return Color.decode(this.scopes.getOrDefault(scopeId, new ScopePrefs()).getBackgroundColor());
     }
 
-    public Color getTextColor() {
-        return Color.decode(this.textColor);
+    public void setTextColor(String scopeId, Color color) {
+        ScopePrefs scopePrefs = this.scopes.getOrDefault(scopeId, new ScopePrefs());
+        scopePrefs.setTextColor(UtilsColor.toHex(color));
     }
 
-    public String getLabel() {
-        return this.label;
+    public Color getTextColor(String scopeId) {
+        return Color.decode(this.scopes.getOrDefault(scopeId, new ScopePrefs()).getTextColor());
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public String getLabel(String scopeId) {
+        return this.scopes.getOrDefault(scopeId, new ScopePrefs()).getLabel();
+    }
+
+    public void setLabel(String scopeId, String label) {
+        ScopePrefs scopePrefs = this.scopes.getOrDefault(scopeId, new ScopePrefs());
+        scopePrefs.setLabel(label);
     }
 
     public int getFontSize(String scopeId) {
-        System.out.println("get fs");
-        System.out.println(scopeId);
-        System.out.println(this.scopes.getOrDefault(scopeId, new ScopePrefs()).getFontSize());
-        return Integer.parseInt(this.scopes.getOrDefault(scopeId, new ScopePrefs()).getFontSize());
+        String fontSize = this.scopes.getOrDefault(scopeId, new ScopePrefs()).getFontSize();
+        return fontSize != null ? Integer.parseInt(fontSize) : 1;
     }
 
     public void setFontSize(String scopeId, int fontSize) {
         ScopePrefs scopePrefs = this.scopes.getOrDefault(scopeId, new ScopePrefs());
         scopePrefs.setFontSize(fontSize == -1 ? null : Integer.toString(fontSize));
-        System.out.println("set fs");
-        System.out.println(scopeId);
-        System.out.println(fontSize);
-        System.out.println(scopePrefs);
         this.scopes.put(scopeId, scopePrefs);
     }
 
-    public String getFontName() {
+    public String getFontName(String scopeId) {
+        String fontName = this.scopes.getOrDefault(scopeId, new ScopePrefs()).getFontName();
         return fontName == null ? "" : fontName;
     }
 
-    public Font getFont() {
+    public Font getFont(String scopeId) {
+        String fontName = this.scopes.getOrDefault(scopeId, new ScopePrefs()).getFontName();
         return UtilsFont.getFontByName(fontName);
     }
 
-    public void setFontName(String font) {
-        this.fontName = font.isEmpty() ? null : font;
+    public void setFontName(String scopeId, String font) {
+        ScopePrefs scopePrefs = this.scopes.getOrDefault(scopeId, new ScopePrefs());
+        scopePrefs.setFontName(font.isEmpty() ? null : font);
     }
 }

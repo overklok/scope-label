@@ -130,9 +130,9 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
 
         String scopeId = findScope(file);
 
-        backgroundColor = new JBColor(projectPreferences.getBackgroundColor(), projectPreferences.getBackgroundColor());
-        textColor = new JBColor(projectPreferences.getTextColor(), projectPreferences.getTextColor());
-        label = projectPreferences.getLabel().isEmpty() ? this.project.getName().toUpperCase() : projectPreferences.getLabel();
+        backgroundColor = new JBColor(projectPreferences.getBackgroundColor(scopeId), projectPreferences.getBackgroundColor(scopeId));
+        textColor = new JBColor(projectPreferences.getTextColor(scopeId), projectPreferences.getTextColor(scopeId));
+        label = projectPreferences.getLabel(scopeId).isEmpty() ? this.project.getName().toUpperCase() : projectPreferences.getLabel(scopeId);
 
         float projectPreferencesFontSize = projectPreferences.getFontSize(scopeId);
         float applicationPreferencesFontSize = applicationPreferences.getFontSize();
@@ -141,7 +141,7 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
             fontSize = 8;
         }
 
-        font = projectPreferences.getFontName().isEmpty() ? applicationPreferences.getFont() : projectPreferences.getFont();
+        font = projectPreferences.getFontName(scopeId).isEmpty() ? applicationPreferences.getFont() : projectPreferences.getFont(scopeId);
         if (font == null) {
             font = UtilsFont.getFontByName("Dialog");
         }
@@ -178,12 +178,6 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
 
     @Override
     public void install(@NotNull StatusBar statusBar) {
-    }
-
-    @Override
-    @Nullable
-    public WidgetPresentation getPresentation(@NotNull PlatformType type) {
-        return null;
     }
 
     @Override

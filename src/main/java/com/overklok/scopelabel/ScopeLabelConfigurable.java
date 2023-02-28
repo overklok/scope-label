@@ -60,7 +60,7 @@ public class ScopeLabelConfigurable extends NamedConfigurable<NamedScope> {
     public NamedScope getEditableObject() {
         return myScope;
 //        return projectPreferences.getScopePrefs().get(myScope.getScopeId());
-//        return new NamedScope(myScope.getScopeId(), myIcon, myPanel.getCurrentScope());
+//        return new NamedScope(myScope.getScopeId(), myIcon, myScope.getValue());
     }
 
     public String getScopeId() {
@@ -80,43 +80,41 @@ public class ScopeLabelConfigurable extends NamedConfigurable<NamedScope> {
             preferencesPanel = new PluginConfiguration();
             preferencesPanel.setGlobalFontSize(applicationPreferences.getFontSize());
             preferencesPanel.setGlobalFontName(applicationPreferences.getFontName());
-            preferencesPanel.setTextColor(projectPreferences.getTextColor());
-            preferencesPanel.setBackgroundColor(projectPreferences.getBackgroundColor());
+            preferencesPanel.setTextColor(projectPreferences.getTextColor(scopeId));
+            preferencesPanel.setBackgroundColor(projectPreferences.getBackgroundColor(scopeId));
             preferencesPanel.setFontSize(projectPreferences.getFontSize(scopeId));
-            preferencesPanel.setFontName(projectPreferences.getFontName());
-            preferencesPanel.setLabel(projectPreferences.getLabel());
+            preferencesPanel.setFontName(projectPreferences.getFontName(scopeId));
+            preferencesPanel.setLabel(projectPreferences.getLabel(scopeId));
         }
         return preferencesPanel.getRootPanel();
+    }
+
+    public boolean isInitialized() {
+        return null != preferencesPanel;
     }
 
     public boolean isModified() {
         String scopeId = myScope.getScopeId();
 
-        System.out.println("ism " + scopeId);
-
         return
-                !UtilsColor.isEqual(projectPreferences.getBackgroundColor(), preferencesPanel.getBackgroundColor())
-                        || !UtilsColor.isEqual(projectPreferences.getTextColor(), preferencesPanel.getTextColor())
+                !UtilsColor.isEqual(projectPreferences.getBackgroundColor(scopeId), preferencesPanel.getBackgroundColor())
+                        || !UtilsColor.isEqual(projectPreferences.getTextColor(scopeId), preferencesPanel.getTextColor())
                         || projectPreferences.getFontSize(scopeId) != preferencesPanel.getFontSize()
-                        || !projectPreferences.getLabel().equals(preferencesPanel.getLabel())
-                        || !projectPreferences.getFontName().equals(preferencesPanel.getFontName())
+                        || !projectPreferences.getLabel(scopeId).equals(preferencesPanel.getLabel())
+                        || !projectPreferences.getFontName(scopeId).equals(preferencesPanel.getFontName())
                         || applicationPreferences.getFontSize() != preferencesPanel.getGlobalFontSize()
                         || !applicationPreferences.getFontName().equals(preferencesPanel.getGlobalFontName());
     }
 
     public void apply() {
-        System.out.println("apply");
-
         if (null != preferencesPanel) {
             String scopeId = myScope.getScopeId();
 
-            System.out.println(scopeId);
-
-            projectPreferences.setTextColor(preferencesPanel.getTextColor());
-            projectPreferences.setBackgroundColor(preferencesPanel.getBackgroundColor());
+            projectPreferences.setTextColor(scopeId, preferencesPanel.getTextColor());
+            projectPreferences.setBackgroundColor(scopeId, preferencesPanel.getBackgroundColor());
             projectPreferences.setFontSize(scopeId, preferencesPanel.getFontSize());
-            projectPreferences.setFontName(preferencesPanel.getFontName());
-            projectPreferences.setLabel(preferencesPanel.getLabel());
+            projectPreferences.setFontName(scopeId, preferencesPanel.getFontName());
+            projectPreferences.setLabel(scopeId, preferencesPanel.getLabel());
             applicationPreferences.setFontSize(preferencesPanel.getGlobalFontSize());
             applicationPreferences.setFontName(preferencesPanel.getGlobalFontName());
             if (project != null) {
