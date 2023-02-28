@@ -11,15 +11,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @State(
-        name = "ProjectLabelApplicationPreferences",
+        name = "ScopeLabelApplicationPreferences",
         storages = {
-                @Storage("project-label-global.xml")
+                @Storage("scope-label-global.xml")
         }
 )
 public class ApplicationPreferences implements PersistentStateComponent<ApplicationPreferences> {
-
     @OptionTag
     private String fontSize = "8";
 
@@ -60,5 +61,4 @@ public class ApplicationPreferences implements PersistentStateComponent<Applicat
     public Font getFont() {
         return UtilsFont.getFontByName(fontName);
     }
-
 }

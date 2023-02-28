@@ -35,6 +35,10 @@
 <!--                                 instance="com.overklok.scopelabel.FileColorsConfigurable"/>-->
     </extensions>
 
+    <applicationListeners>
+        <listener class="com.overklok.scopelabel.FileEditorManagerListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"></listener>
+    </applicationListeners>
+
     <!-- com.intellij.ide.util.scopeChooser.ScopeChooserConfigurable -->
 
     <project-components>

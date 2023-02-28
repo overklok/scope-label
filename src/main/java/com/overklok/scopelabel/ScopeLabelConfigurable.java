@@ -5,7 +5,6 @@ import javax.swing.*;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.NlsSafe;
-import com.intellij.packageDependencies.DependencyValidationManager;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.NamedScopeManager;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
@@ -14,16 +13,12 @@ import com.overklok.scopelabel.preferences.ProjectPreferences;
 import com.overklok.scopelabel.resources.ui.PluginConfiguration;
 
 import com.overklok.scopelabel.utils.UtilsColor;
-import com.intellij.openapi.options.Configurable;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.intellij.openapi.project.Project;
 
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.Nullable;
-
-public class ScopeLabelConfigurable extends NamedConfigurable<ScopeLabelConfigurable> {
+public class ScopeLabelConfigurable extends NamedConfigurable<NamedScope> {
 
     private PluginConfiguration preferencesPanel;
 
@@ -43,7 +38,7 @@ public class ScopeLabelConfigurable extends NamedConfigurable<ScopeLabelConfigur
     }
 
     public String getDisplayName() {
-        return "Project Label";
+        return myScope.getPresentableName();
     }
 
     @Nullable
@@ -62,9 +57,14 @@ public class ScopeLabelConfigurable extends NamedConfigurable<ScopeLabelConfigur
     }
 
     @Override
-    public ScopeLabelConfigurable getEditableObject() {
-        return null;
+    public NamedScope getEditableObject() {
+        return myScope;
+//        return projectPreferences.getScopePrefs().get(myScope.getScopeId());
 //        return new NamedScope(myScope.getScopeId(), myIcon, myPanel.getCurrentScope());
+    }
+
+    public String getScopeId() {
+        return myScope.getScopeId();
     }
 
     @Override
@@ -75,12 +75,14 @@ public class ScopeLabelConfigurable extends NamedConfigurable<ScopeLabelConfigur
     @Override
     public JComponent createOptionsPanel() {
         if (null == preferencesPanel) {
+            String scopeId = myScope.getScopeId();
+
             preferencesPanel = new PluginConfiguration();
             preferencesPanel.setGlobalFontSize(applicationPreferences.getFontSize());
             preferencesPanel.setGlobalFontName(applicationPreferences.getFontName());
             preferencesPanel.setTextColor(projectPreferences.getTextColor());
             preferencesPanel.setBackgroundColor(projectPreferences.getBackgroundColor());
-            preferencesPanel.setFontSize(projectPreferences.getFontSize());
+            preferencesPanel.setFontSize(projectPreferences.getFontSize(scopeId));
             preferencesPanel.setFontName(projectPreferences.getFontName());
             preferencesPanel.setLabel(projectPreferences.getLabel());
         }
@@ -88,10 +90,14 @@ public class ScopeLabelConfigurable extends NamedConfigurable<ScopeLabelConfigur
     }
 
     public boolean isModified() {
+        String scopeId = myScope.getScopeId();
+
+        System.out.println("ism " + scopeId);
+
         return
                 !UtilsColor.isEqual(projectPreferences.getBackgroundColor(), preferencesPanel.getBackgroundColor())
                         || !UtilsColor.isEqual(projectPreferences.getTextColor(), preferencesPanel.getTextColor())
-                        || projectPreferences.getFontSize() != preferencesPanel.getFontSize()
+                        || projectPreferences.getFontSize(scopeId) != preferencesPanel.getFontSize()
                         || !projectPreferences.getLabel().equals(preferencesPanel.getLabel())
                         || !projectPreferences.getFontName().equals(preferencesPanel.getFontName())
                         || applicationPreferences.getFontSize() != preferencesPanel.getGlobalFontSize()
@@ -99,10 +105,16 @@ public class ScopeLabelConfigurable extends NamedConfigurable<ScopeLabelConfigur
     }
 
     public void apply() {
+        System.out.println("apply");
+
         if (null != preferencesPanel) {
+            String scopeId = myScope.getScopeId();
+
+            System.out.println(scopeId);
+
             projectPreferences.setTextColor(preferencesPanel.getTextColor());
             projectPreferences.setBackgroundColor(preferencesPanel.getBackgroundColor());
-            projectPreferences.setFontSize(preferencesPanel.getFontSize());
+            projectPreferences.setFontSize(scopeId, preferencesPanel.getFontSize());
             projectPreferences.setFontName(preferencesPanel.getFontName());
             projectPreferences.setLabel(preferencesPanel.getLabel());
             applicationPreferences.setFontSize(preferencesPanel.getGlobalFontSize());

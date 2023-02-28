@@ -23,6 +23,7 @@ import com.intellij.psi.search.scope.packageSet.NamedScopeManager;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.overklok.scopelabel.preferences.ScopePrefs;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,22 +131,22 @@ public class ScopeLabelChooserConfigurable extends MasterDetailsComponent implem
 
     @Override
     public boolean isModified() {
-//        final List<String> order = getScopesState().myOrder;
-//        if (myRoot.getChildCount() != order.size()) return true;
-//        for (int i = 0; i < myRoot.getChildCount(); i++) {
-//            final MyNode node = (MyNode)myRoot.getChildAt(i);
-//            final ScopeConfigurable scopeConfigurable = (ScopeConfigurable)node.getConfigurable();
-//            final NamedScope namedScope = scopeConfigurable.getEditableObject();
-//            if (order.size() <= i) return true;
-//            final String name = order.get(i);
-//            if (!Comparing.strEqual(name, namedScope.getScopeId())) return true;
-//            if (isInitialized(scopeConfigurable)) {
-//                final NamedScopesHolder holder = scopeConfigurable.getHolder();
-//                final NamedScope scope = holder.getScope(name);
-//                if (scope == null) return true;
-//                if (scopeConfigurable.isModified()) return true;
-//            }
-//        }
+        final List<String> order = getScopesState().myOrder;
+        if (myRoot.getChildCount() != order.size()) return true;
+        for (int i = 0; i < myRoot.getChildCount(); i++) {
+            final MyNode node = (MyNode)myRoot.getChildAt(i);
+            final ScopeLabelConfigurable scopeConfigurable = (ScopeLabelConfigurable)node.getConfigurable();
+
+            if (order.size() <= i) return true;
+            final String name = order.get(i);
+            if (!Comparing.strEqual(name, scopeConfigurable.getScopeId())) return true;
+            if (isInitialized(scopeConfigurable)) {
+                final NamedScopesHolder holder = scopeConfigurable.getHolder();
+                final NamedScope scope = holder.getScope(name);
+                if (scope == null) return true;
+                if (scopeConfigurable.isModified()) return true;
+            }
+        }
         return false;
     }
 
@@ -179,7 +180,7 @@ public class ScopeLabelChooserConfigurable extends MasterDetailsComponent implem
         final NamedScope[] scopes = holder.getScopes();
         for (NamedScope scope : scopes) {
             if (isPredefinedScope(scope)) continue;
-            myRoot.add(new MyNode(new ScopeConfigurable(scope, holder == mySharedScopesManager, myProject, TREE_UPDATER)));
+            myRoot.add(new MyNode(new ScopeLabelConfigurable(scope, myProject)));
         }
     }
 
@@ -233,7 +234,23 @@ public class ScopeLabelChooserConfigurable extends MasterDetailsComponent implem
 
     @Override
     protected void updateSelection(@Nullable final NamedConfigurable configurable) {
-        super.updateSelection(configurable);
+        if (myCurrentConfigurable != null) {
+            try {
+                myCurrentConfigurable.apply();
+            } catch (ConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (configurable != null) {
+            NamedScope scope = (NamedScope) configurable.getEditableObject();
+
+            ScopeLabelConfigurable slc = new ScopeLabelConfigurable(scope, myProject);
+            super.updateSelection(slc);
+        } else {
+            super.updateSelection(null);
+        }
+
         if (configurable instanceof ScopeConfigurable) {
             ((ScopeConfigurable)configurable).restoreCanceledProgress();
         }

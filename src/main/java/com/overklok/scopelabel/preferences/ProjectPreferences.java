@@ -14,14 +14,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @State(
-        name = "ProjectLabel",
+        name = "ScopeLabel",
         storages = {
-                @Storage("project-label.xml"),
+                @Storage("scope-label.xml"),
         }
 )
 public class ProjectPreferences implements PersistentStateComponent<ProjectPreferences> {
+    @OptionTag
+    private Map<String, ScopePrefs> items = new HashMap<>();
 
     @OptionTag
     private String label = "";
@@ -37,6 +41,9 @@ public class ProjectPreferences implements PersistentStateComponent<ProjectPrefe
 
     @OptionTag
     private String fontName = null;
+
+    @OptionTag
+    private Map<String, ScopePrefs> scopes = new HashMap<>();
 
     public static ProjectPreferences getInstance(Project project) {
         return ServiceManager.getService(project, ProjectPreferences.class);
@@ -55,6 +62,10 @@ public class ProjectPreferences implements PersistentStateComponent<ProjectPrefe
 
     public void setBackgroundColor(Color color) {
         this.backgroundColor = UtilsColor.toHex(color);
+    }
+
+    public Map<String, ScopePrefs> getScopePrefs() {
+        return scopes;
     }
 
     public Color getBackgroundColor() {
@@ -77,12 +88,21 @@ public class ProjectPreferences implements PersistentStateComponent<ProjectPrefe
         this.label = label;
     }
 
-    public int getFontSize() {
-        return this.fontSize == null ? -1 : Integer.parseInt(this.fontSize);
+    public int getFontSize(String scopeId) {
+        System.out.println("get fs");
+        System.out.println(scopeId);
+        System.out.println(this.scopes.getOrDefault(scopeId, new ScopePrefs()).getFontSize());
+        return Integer.parseInt(this.scopes.getOrDefault(scopeId, new ScopePrefs()).getFontSize());
     }
 
-    public void setFontSize(int fontSize) {
-        this.fontSize = fontSize == -1 ? null : Integer.toString(fontSize);
+    public void setFontSize(String scopeId, int fontSize) {
+        ScopePrefs scopePrefs = this.scopes.getOrDefault(scopeId, new ScopePrefs());
+        scopePrefs.setFontSize(fontSize == -1 ? null : Integer.toString(fontSize));
+        System.out.println("set fs");
+        System.out.println(scopeId);
+        System.out.println(fontSize);
+        System.out.println(scopePrefs);
+        this.scopes.put(scopeId, scopePrefs);
     }
 
     public String getFontName() {
@@ -96,6 +116,4 @@ public class ProjectPreferences implements PersistentStateComponent<ProjectPrefe
     public void setFontName(String font) {
         this.fontName = font.isEmpty() ? null : font;
     }
-
-
 }

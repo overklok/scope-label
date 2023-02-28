@@ -1,7 +1,14 @@
 package com.overklok.scopelabel.resources.ui;
 
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.search.scope.packageSet.NamedScope;
+import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
+import com.intellij.psi.search.scope.packageSet.PackageSet;
+import com.intellij.psi.search.scope.packageSet.PackageSetBase;
+//import com.intellij.ui.tabs.FileColorConfiguration;
 import com.overklok.scopelabel.preferences.ApplicationPreferences;
 import com.overklok.scopelabel.preferences.ProjectPreferences;
+import com.overklok.scopelabel.preferences.ScopePrefs;
 import com.overklok.scopelabel.utils.UtilsFont;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -20,6 +27,7 @@ import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
+import java.util.Map;
 
 public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
 
@@ -80,12 +88,43 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
         updateUI();
     }
 
+    @Nullable
+    private String findScope(@NotNull final VirtualFile file) {
+        Map<String, ScopePrefs> scopes = projectPreferences.getScopePrefs();
+
+        if (scopes == null) {
+            return null;
+        }
+
+        for (Map.Entry<String, ScopePrefs> entry : scopes.entrySet()) {
+            String scopeId = entry.getKey();
+            NamedScope scope = NamedScopesHolder.getScope(project, scopeId);
+            if (scope != null) {
+                NamedScopesHolder namedScopesHolder = NamedScopesHolder.getHolder(project, scopeId, null);
+                PackageSet packageSet = scope.getValue();
+
+                if (packageSet instanceof PackageSetBase && namedScopesHolder != null) {
+                    return scopeId;
+                }
+
+//                if (packageSet instanceof PackageSetBase && namedScopesHolder != null && ((PackageSetBase)packageSet).contains(colored, myProject, namedScopesHolder)) {
+//                    return configuration;
+//                }
+            }
+        }
+        return null;
+    }
+
     private void setStateFromSettings() {
+        VirtualFile file = project.getProjectFile();
+
+        String scopeId = findScope(file);
+
         backgroundColor = new JBColor(projectPreferences.getBackgroundColor(), projectPreferences.getBackgroundColor());
         textColor = new JBColor(projectPreferences.getTextColor(), projectPreferences.getTextColor());
         label = projectPreferences.getLabel().isEmpty() ? this.project.getName().toUpperCase() : projectPreferences.getLabel();
 
-        float projectPreferencesFontSize = projectPreferences.getFontSize();
+        float projectPreferencesFontSize = projectPreferences.getFontSize(scopeId);
         float applicationPreferencesFontSize = applicationPreferences.getFontSize();
         float fontSize = JBUIScale.scaleFontSize(projectPreferencesFontSize == -1 ? applicationPreferencesFontSize : projectPreferencesFontSize);
         if (fontSize == 0) {
