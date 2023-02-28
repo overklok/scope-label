@@ -1,11 +1,13 @@
 package com.overklok.scopelabel.resources.ui;
 
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.psi.search.scope.packageSet.PackageSet;
 import com.intellij.psi.search.scope.packageSet.PackageSetBase;
 //import com.intellij.ui.tabs.FileColorConfiguration;
+import com.overklok.scopelabel.FileEditorManagerListener;
 import com.overklok.scopelabel.preferences.ApplicationPreferences;
 import com.overklok.scopelabel.preferences.ProjectPreferences;
 import com.overklok.scopelabel.preferences.ScopePrefs;
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -52,6 +55,7 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
     private Color backgroundColor;
     private Color textColor;
     private Font font;
+    private VirtualFile currentFile;
 
     private static RenderingHints HINTS;
 
@@ -79,6 +83,8 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
         this.projectPreferences = projectPreferences;
         this.applicationPreferences = applicationPreferences;
 
+        this.currentFile = project.getProjectFile();
+
         setStateFromSettings();
 
         setOpaque(false);
@@ -86,6 +92,14 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
         setBorder(StatusBarWidget.WidgetBorder.INSTANCE);
         repaint();
         updateUI();
+
+        this.project.getMessageBus().connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+            @Override
+            public void selectionChanged(@Nonnull FileEditorManagerEvent event) {
+                currentFile = event.getNewFile();
+                rebuildWidget();
+            }
+        });
     }
 
     @Nullable
@@ -103,20 +117,16 @@ public class StatusBarWidget extends JButton implements CustomStatusBarWidget {
                 NamedScopesHolder namedScopesHolder = NamedScopesHolder.getHolder(project, scopeId, null);
                 PackageSet packageSet = scope.getValue();
 
-                if (packageSet instanceof PackageSetBase && namedScopesHolder != null) {
+                if (packageSet instanceof PackageSetBase && namedScopesHolder != null && ((PackageSetBase)packageSet).contains(file, project, namedScopesHolder)) {
                     return scopeId;
                 }
-
-//                if (packageSet instanceof PackageSetBase && namedScopesHolder != null && ((PackageSetBase)packageSet).contains(colored, myProject, namedScopesHolder)) {
-//                    return configuration;
-//                }
             }
         }
         return null;
     }
 
     private void setStateFromSettings() {
-        VirtualFile file = project.getProjectFile();
+        VirtualFile file = this.currentFile != null ? this.currentFile : project.getProjectFile();
 
         String scopeId = findScope(file);
 
